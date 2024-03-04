@@ -1,6 +1,7 @@
 'use client'
 import React, { useState, useRef, ReactElement } from 'react';
 import { defaultData } from './data/defaultMachine';
+import { Graph } from 'react-d3-graph';
 
 export default function Home() {
   //Q
@@ -208,11 +209,22 @@ export default function Home() {
     }
   }
 
-
+  const graphData = {
+    nodes: Array.from(states).map((state) => {return {id: state}}),
+    links: Array.from(delta).map((rule) => {
+      const sourceName: Array<string> = JSON.parse(rule[0]);
+      return {source: sourceName[0], 
+              target: rule[1][0],
+              labelProperty: "[" + sourceName[0] + ", " + sourceName[1] + "] -> [" + rule[1][0] + ", " + rule[1][1] + ", " + rule[1][2] + "]",
+              renderLabel: true,
+              
+             };
+    }),
+  }
 
 
   return (
-    <div className="flex min-h-screen flex-col bg-white text-black">
+    <div className="flex max-h-screen flex-col bg-white text-black">
       <div className='flex flex-row justify-around m-3'>
         <button className='border-2 hover:bg-gray-100 m-2 rounded-md px-1 h-10 font-semibold text-rose-700 text-xl' onClick={resetMachine}>Reset</button>
         <div className='flex flex-col text-center'>
@@ -228,9 +240,9 @@ export default function Home() {
           {states && sigma && gamma && delta && q0 && qa && qr ? <button className='border-2 hover:bg-gray-100 m-2 rounded-md p-1 font-semibold text-green-600 text-xl' onClick={executeMachine}>Run</button> : <></>}
         </div>
       </div>
-      <div className='flex flex-row'>
+      <div className='flex flex-row justify-between'>
         <div className='flex flex-col ml-2 w-1/4'>
-          <div>
+          <div className='font-medium text-lg'>
             Enter fields one at a time
           </div>
           <div className='flex flex-col'>
@@ -289,30 +301,161 @@ export default function Home() {
             <div className='flex flex-col my-2'>δ:{displayedDelta}</div>
           </div>
         </div>
-        <div>
-          <label>
+        <div className='flex flex-col justify-between items-center'>
+          <label className='font-medium text-lg'>
             Specify Input:
             <input className='border-b-2 border-gray-700 hover:bg-gray-100 mx-1' type='text' onChange={input => setUserInput(input.target.value)}/>
           </label>
+          <div>
+            <Graph 
+              id='turing-machine'
+              data={graphData}
+              config={graphConfig}
+              onClickGraph={onClickGraph}
+              onClickNode={onClickNode}
+              onDoubleClickNode={onDoubleClickNode}
+              onRightClickNode={onRightClickNode}
+              onClickLink={onClickLink}
+              onRightClickLink={onRightClickLink}
+              onMouseOverNode={onMouseOverNode}
+              onMouseOutNode={onMouseOutNode}
+              onMouseOverLink={onMouseOverLink}
+              onMouseOutLink={onMouseOutLink}
+              onNodePositionChange={onNodePositionChange}
+            />
+          </div>
+          <div>
+            THE TAPE HERE
+          </div>
         </div>
-        <div className='m-2'>
-          <button className='border-2 hover:bg-gray-100 m-2 rounded-md p-1' onClick={executeMachine}>Run Default Turing Machine</button>
-          <button className='border-2 hover:bg-gray-100 m-2 rounded-md p-1' onClick={createDefaultMachine}>Create Example Turing Machine</button>
-          <button className='border-2 hover:bg-gray-100 m-2 rounded-md p-1' onClick={resetMachine}>Delete Turing Machine</button>
-        </div>
-        <div>
-          {userInput}
+        <div className='flex flex-row rounded-md text-lg text-center font-medium overflow-hidden max-h-screen mb-10'>
+          <div className='border-2 mx-3 px-3'>
+            <div className='overflow-y-auto max-h-full'>
+              Configurations
+              <hr />
+              <ol>{configurations.map((config, idx) => <li key={idx}>{idx + 1 + ".   " + config}</li>)}</ol>
+            </div>
+          </div>
+          <div className='border-2 mx-3 px-3'>
+            Status
+            <hr />
+            {statusMessage}
+          </div>
         </div>
         <div className='font-bold text-lg text-red-700'>
           {errorMessage}
-        </div>
-        <div>
-          {configurations.length > 0 ? (<ol>configuration:<hr/>{configurations.map((config, idx) => <li key={idx}>{idx + 1 + ".   " + config}</li>)}</ol>) : <></>}
-        </div>
-        <div className='font-bold'>
-          {statusMessage !== "not started" ? statusMessage : <></>}
         </div>
       </div>
     </div>
   );
 }
+
+
+const graphConfig = {
+  "automaticRearrangeAfterDropNode": true,
+  "collapsible": true,
+  "directed": true,
+  "focusAnimationDuration": 0.75,
+  "focusZoom": 1,
+  "freezeAllDragEvents": false,
+  "height": 400,
+  "highlightDegree": 1,
+  "highlightOpacity": 1,
+  "linkHighlightBehavior": false,
+  "maxZoom": 8,
+  "minZoom": 0.1,
+  "nodeHighlightBehavior": false,
+  "panAndZoom": false,
+  "staticGraph": false,
+  "staticGraphWithDragAndDrop": false,
+  "width": 1000,
+  "d3": {
+    "alphaTarget": 0.05,
+    "gravity": -100,
+    "linkLength": 100,
+    "linkStrength": 1,
+    "disableLinkForce": false
+  },
+  "node": {
+    "color": "#d3d3d3",
+    "fontColor": "black",
+    "fontSize": 20,
+    "fontWeight": "normal",
+    "highlightColor": "SAME",
+    "highlightFontSize": 8,
+    "highlightFontWeight": "normal",
+    "highlightStrokeColor": "SAME",
+    "mouseCursor": "pointer",
+    "opacity": 1,
+    "renderLabel": true,
+    "size": 200,
+    "strokeColor": "none",
+    "strokeWidth": 1.5,
+    "svg": "",
+    "symbolType": "circle"
+  },
+  "link": {
+    "color": "#d3d3d3",
+    "fontColor": "black",
+    "fontSize": 10,
+    "fontWeight": "normal",
+    "highlightColor": "SAME",
+    "highlightFontSize": 8,
+    "highlightFontWeight": "normal",
+    "mouseCursor": "pointer",
+    "opacity": 1,
+    "renderLabel": true,
+    "semanticStrokeWidth": true,
+    "strokeWidth": 1.5,
+    "markerHeight": 6,
+    "markerWidth": 6,
+    "strokeDasharray": 0,
+    "strokeDashoffset": 0,
+    "strokeLinecap": "butt"
+  }
+};
+
+
+const onClickGraph = function(event: any) {
+  // window.alert('Clicked the graph background');
+};
+
+const onClickNode = function(nodeId: any) {
+  // window.alert('Clicked node ${nodeId}');
+};
+
+const onDoubleClickNode = function(nodeId: any) {
+  // window.alert('Double clicked node ${nodeId}');
+};
+
+const onRightClickNode = function(event: any, nodeId: any) {
+  // window.alert('Right clicked node ${nodeId}');
+};
+
+const onMouseOverNode = function(nodeId: any) {
+  // window.alert(`Mouse over node ${nodeId}`);
+};
+
+const onMouseOutNode = function(nodeId: any) {
+  // window.alert(`Mouse out node ${nodeId}`);
+};
+
+const onClickLink = function(source: any, target: any) {
+  // window.alert(`Clicked link between ${source} and ${target}`);
+};
+
+const onRightClickLink = function(event: any, source: any, target: any) {
+  // window.alert('Right clicked link between ${source} and ${target}');
+};
+
+const onMouseOverLink = function(source: any, target: any) {
+  // window.alert(`Mouse over in link between ${source} and ${target}`);
+};
+
+const onMouseOutLink = function(source: any, target: any) {
+  // window.alert(`Mouse out link between ${source} and ${target}`);
+};
+
+const onNodePositionChange = function(nodeId: any, x: any, y: any) {
+  // window.alert(`Node ${nodeId} moved to new position x= ${x} y= ${y}`);
+};
