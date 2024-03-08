@@ -58,6 +58,7 @@ export default function Home() {
   const [displayedSigma, setDisplayedSigma] = useState<Array<ReactElement>>([]);
   const [displayedDelta, setDisplayedDelta] = useState<Array<ReactElement>>([]);
   const [displayedGamma, setDisplayedGamma] = useState<Array<ReactElement>>([]);
+  const [displayedTape, setDisplayedTape] = useState<Array<ReactElement>>([]);
   const [isUserInputCollapsed, setIsUserInputCollapsed] = useState<boolean>(true);
   const [windowObject, setWindowObject] = useState<WindowObject>({height: 0, width: 0});
   const [graphData, setGraphData] = useState<GraphDataObj>({nodes: [], links: []});
@@ -99,15 +100,19 @@ export default function Home() {
     setQR("");
     setConfigurations([]);
     setUserInput("");
+    setDisplayedTape([]);
   }
 
-  const executeMachine = () => {
+  const executeMachine = async () => {
     setStatus("processing...");
     let currentConfigurations = [];
     let tape = userInput;
     let currentState: string = q0;
     let currentIdx: number = 0;
     currentConfigurations.push(tape.slice(0, currentIdx) + currentState + tape.slice(currentIdx));
+    setConfigurations(currentConfigurations);
+    setDisplayedTape(displayTape(tape.toString(), currentIdx));
+    await new Promise(resolve => setTimeout(resolve, 500));
     while(currentState !== qa && currentState !== qr && !errorMessage) {
       const currentSymbol: string = tape.slice(currentIdx, currentIdx + 1);
       if (delta.has(JSON.stringify([currentState, currentSymbol]))) {
@@ -140,10 +145,12 @@ export default function Home() {
         currentState = qr;
       }
       currentConfigurations.push(tape.slice(0, currentIdx) + currentState + tape.slice(currentIdx));
+
+      //display changes in the tape and configuration
+      setConfigurations(currentConfigurations);
+      setDisplayedTape(displayTape(tape.toString(), currentIdx));
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
-
-
-    setConfigurations(currentConfigurations);
 
     if (currentState === qa) {
       setStatus("accepted");
@@ -261,14 +268,15 @@ export default function Home() {
       }),
       links: Array.from(delta).map((rule) => {
         const sourceName: Array<string> = JSON.parse(rule[0]);
+
         return {
-            source: sourceName[0], 
+            source: sourceName[0],
             target: rule[1][0],
             labelTitle: "[" + sourceName[0] + ", " + sourceName[1] + "] -> [" + rule[1][0] + ", " + rule[1][1] + ", " + rule[1][2] + "]", 
           };
       }),
     });
-  }, [states, delta]);
+  }, [states, delta, qa, qr]);
 
   const graphConfig = {
     "automaticRearrangeAfterDropNode": true,
@@ -325,7 +333,6 @@ export default function Home() {
     }
   };
 
-
   return (
     <div className="flex max-h-screen min-h-screen flex-col bg-white text-black">
       <div className='flex flex-row justify-around m-3'>
@@ -345,11 +352,11 @@ export default function Home() {
       </div>
       <div className='flex flex-row justify-between'>
         <div className='flex flex-col ml-2 min-w-80 w-1/4 max-h-[85vh]'>
-          <div className='font-medium text-lg flex flex-row'>
+          <div className='font-medium text-lg flex flex-row items-center'>
             <div>
               Enter fields one at a time
             </div>
-            <button className="border-2 rounded-full mx-1 w-10 h-10 items-center justify-center" onClick={() => setIsUserInputCollapsed((prevIsUserInputCollapsed) => !prevIsUserInputCollapsed)}>{isUserInputCollapsed ? 'v' : '^'}</button>
+            <button className="border-2 rounded-full mx-1 p-2 items-center justify-center text-sm text-gray-500 hover:bg-gray-100" onClick={() => setIsUserInputCollapsed((prevIsUserInputCollapsed) => !prevIsUserInputCollapsed)}>{isUserInputCollapsed ? 'Expand' : 'Collapse'}</button>
           </div>
           <div className={`flex flex-col overflow-y-auto h-[40vh] mb-5 ${isUserInputCollapsed ? 'hidden' : ''}`}>
             <label>
@@ -400,7 +407,7 @@ export default function Home() {
             </label>
           </div>
           <div className='font-medium text-lg flex flex-row'>
-            Enter fields one at a time
+            Turing Machine Definition
           </div>
           <div className='flex flex-col overflow-y-auto h-[40vh]'>
             <div className='flex flex-row my-2'>Q:{displayedStates}</div>
@@ -415,7 +422,7 @@ export default function Home() {
         <div className='flex flex-col items-center justify-between max-h-[85vh] min-h-[85vh]'>
           <label className='font-medium text-lg'>
             Specify Input:
-            <input className='border-b-2 border-gray-700 hover:bg-gray-100 mx-1' type='text' value={userInput.toString()} onChange={input => setUserInput(input.target.value)}/>
+            <input className={`border-b-2 border-gray-700 hover:bg-gray-100 mx-1 ${statusMessage === "processing..." ? 'disabled' : ''}`} type='text' value={userInput.toString()} onChange={input => {setUserInput(input.target.value); setDisplayedTape(displayTape(input.target.value, -1))}}/>
           </label>
           <div className='justify-center items-center'>
             <Graph 
@@ -424,11 +431,11 @@ export default function Home() {
               config={graphConfig}
             />
           </div>
-          <div>
-            THE TAPE HERE
+          <div className={displayedTape.length > 0 ? 'flex flex-row border-4 border-black' : ''}>
+            {displayedTape}
           </div>
         </div>
-        <div className='flex flex-row rounded-md text-lg text-center font-medium overflow-hidden max-h-[85vh] mb-10 w-full'>
+        <div className='flex flex-row rounded-md text-lg text-center justify-end font-medium overflow-hidden max-h-[85vh] mb-10 w-full'>
           <div className='border-2 mx-3 px-3'>
             <div className='overflow-y-auto max-h-full'>
               Configurations
@@ -448,4 +455,17 @@ export default function Home() {
       </div>
     </div>
   );
+}
+
+
+const displayTape = (tape: string, currentIdx: number) => {
+  const result: Array<ReactElement> = [];
+  for (let i = 0; i < tape.length; i++) {
+    if (i === currentIdx) {
+      result.push(<div className='px-1 border-2 border-black bg-gray-500 text-4xl'>{tape.at(i)}</div>);
+    } else {
+      result.push(<div className='px-1 border-2 border-black text-4xl'>{tape.at(i)}</div>);
+    }
+  }
+  return result;
 }
