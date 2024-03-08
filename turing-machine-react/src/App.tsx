@@ -332,10 +332,6 @@ function App() {
     }
   };
 
-  const onClickNode = (nodeId: string) => {
-    setStates(new Set(...Array.from(states).filter((state) => state !== nodeId)));
-  }
-
   return (
     <div className="flex max-h-screen min-h-screen flex-col bg-white text-black">
       <div className='flex flex-row justify-around m-3'>
@@ -432,7 +428,6 @@ function App() {
               id='turing-machine'
               data={graphData}
               config={graphConfig}
-              onClickNode={onClickNode}
             />
           </div>
           <div className={displayedTape.length > 0 ? 'flex flex-row border-4 border-black' : ''}>
