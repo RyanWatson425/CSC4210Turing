@@ -434,7 +434,7 @@ function App() {
             {displayedTape}
           </div>
         </div>
-        <div className='flex flex-row rounded-md text-lg text-center justify-end font-medium overflow-hidden max-h-[85vh] mb-10 w-full'>
+        <div className='flex flex-row rounded-md text-lg text-center justify-end font-medium overflow-hidden max-h-[85vh] mb-10 w-full z-10'>
           <div className='border-2 mx-3 px-3'>
             <div className='overflow-y-auto max-h-full'>
               Configurations
