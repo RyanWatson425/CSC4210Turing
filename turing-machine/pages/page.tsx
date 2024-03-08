@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect, useRef, ReactElement } from 'react';
-import { defaultData } from '../data/defaultMachine';
+import { defaultData } from '../src/app/data/defaultMachine';
 import { Graph } from 'react-d3-graph';
 
 type WindowObject = {
