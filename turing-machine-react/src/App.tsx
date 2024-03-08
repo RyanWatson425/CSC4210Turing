@@ -418,7 +418,7 @@ function App() {
             <div className='flex flex-col my-2'>δ:{displayedDelta}</div>
           </div>
         </div>
-        <div className='flex flex-col items-center justify-between max-h-[85vh] min-h-[85vh] max-w-[70vw]'>
+        <div className='flex flex-col items-center justify-between max-h-[85vh] min-h-[85vh] max-w-[50vw]'>
           <label className='font-medium text-lg'>
             Specify Input:
             <input className={`border-b-2 border-gray-700 hover:bg-gray-100 mx-1 ${statusMessage === "processing..." ? 'disabled' : ''}`} type='text' value={userInput.toString()} onChange={input => {setUserInput(input.target.value); setDisplayedTape(displayTape(input.target.value, -1))}}/>
