@@ -332,6 +332,10 @@ function App() {
     }
   };
 
+  const onClickNode = (nodeId: string) => {
+    setStates(new Set(...Array.from(states).filter((state) => state !== nodeId)));
+  }
+
   return (
     <div className="flex max-h-screen min-h-screen flex-col bg-white text-black">
       <div className='flex flex-row justify-around m-3'>
@@ -418,7 +422,7 @@ function App() {
             <div className='flex flex-col my-2'>δ:{displayedDelta}</div>
           </div>
         </div>
-        <div className='flex flex-col items-center justify-between max-h-[85vh] min-h-[85vh] mx-5'>
+        <div className='flex flex-col items-center justify-between max-h-[85vh] min-h-[85vh] max-w-[70vw]'>
           <label className='font-medium text-lg'>
             Specify Input:
             <input className={`border-b-2 border-gray-700 hover:bg-gray-100 mx-1 ${statusMessage === "processing..." ? 'disabled' : ''}`} type='text' value={userInput.toString()} onChange={input => {setUserInput(input.target.value); setDisplayedTape(displayTape(input.target.value, -1))}}/>
@@ -428,6 +432,7 @@ function App() {
               id='turing-machine'
               data={graphData}
               config={graphConfig}
+              onClickNode={onClickNode}
             />
           </div>
           <div className={displayedTape.length > 0 ? 'flex flex-row border-4 border-black' : ''}>
